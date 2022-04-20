@@ -61,10 +61,6 @@
 #define struct_tdirent WIN32_FIND_DATAW
 #define d_name         cFileName
 
-#define CDELIM     ';'
-#define TCDELIM    L';'
-#define SDELIM     ";"
-#define TSDELIM    L";"
 #define TCSEP      L'\\'
 #define TSSEP      L"\\"
 #define tissep(ch) ((ch) == L'\\' || (ch) == L'/')
@@ -103,10 +99,6 @@
 
 #define HAVE_MEMMEM
 
-#define CDELIM     ':'
-#define SDELIM     ":"
-#define TCDELIM    CDELIM
-#define TSDELIM    SDELIM
 #define TCSEP      '/'
 #define TSSEP      "/"
 #define tissep(ch) ((ch) == '/')
@@ -317,7 +309,7 @@ static void setextlist(tchar const *list) {
 	while (*n) {
 		if (*n == '.')
 			tstrdel(n, 1);
-		n = tstrchr(n,  TCDELIM);
+		n = tstrchr(n,  T(':'));
 		if (!n)
 			break;
 		++n;
@@ -328,9 +320,9 @@ static bool tlistcontains(tchar const *list, tchar const *item) {
 	size_t itemlen = tstrlen(item);
 	while (*list) {
 		if (memcmp(list, item, itemlen * sizeof(tchar)) == 0 &&
-		    (list[itemlen] == TCDELIM || list[itemlen] == T('\0')))
+		    (list[itemlen] == T(':') || list[itemlen] == T('\0')))
 			return true;
-		list = tstrchr(list, TCDELIM);
+		list = tstrchr(list, T(':'));
 		if (!list)
 			break;
 		++list;
@@ -462,7 +454,7 @@ handle_ch:
 }
 
 static void out2lc_match(struct find *f, size_t match_len) {
-	printf("%" PRIsT "" SDELIM "%u" SDELIM "%u" SDELIM "%lu" SDELIM "%" PRIsT "\n",
+	printf("%" PRIsT ":%u:%u:%lu:%" PRIsT "\n",
 	       out2lc_file, out2lc_line + 1, out2lc_col + 1,
 	       (unsigned long)match_len, f->f_pattern);
 }
@@ -1241,7 +1233,7 @@ static void usage(void) {
 	       "Find and inplace-replace strings in files or stdin\n"
 	       "Available options are:\n"
 	       "         --help        Display this help\n"
-	       "   -f    --find        Find matches and print 'file" SDELIM "line" SDELIM "col" SDELIM "nchars" SDELIM "pattern\\n'\n"
+	       "   -f    --find        Find matches and print 'file:line:col:nchars:pattern\\n'\n"
 	       "                       'line' and 'col' are 1-based; 'pattern' is the original FIND\n"
 	       "   -i    --icase       Ignore casing during matching\n"
 	       "   -b    --bound       Match whole words\n"
@@ -1251,7 +1243,7 @@ static void usage(void) {
 	       "   -e    --escape      Process C-style backslash-escape sequences in FIND and REPLACE\n"
 	       "   -t    --keep-mtime  Preserve last-modified timestamps\n"
 	       "   -R    --recursive   Accept directories and recursively scan them for files\n"
-	       "         --ext=list    Skip files with extension not in 'list' (whose contents are '" SDELIM "'-separated)\n"
+	       "         --ext=list    Skip files with extension not in 'list' (whose contents are ':'-separated)\n"
 	       "   -n N  --max=N       Stop after N matches\n"
 	       "", opt_progname);
 }
@@ -1294,7 +1286,7 @@ int tmain(int argc, tchar *argv[]) {
 			} else if (memcmp(arg, T("ext="), 4 * sizeof(tchar)) == 0) {
 				arg += 4;
 				if (!*arg) {
-					warn("empty extension list. If you want to scan files without extensions, use '--ext=" SDELIM "'\n");
+					warn("empty extension list. If you want to scan files without extensions, use '--ext=:'\n");
 					return 1;
 				}
 				setextlist(arg);
