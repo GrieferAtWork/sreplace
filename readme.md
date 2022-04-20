@@ -36,21 +36,29 @@ Flags:
 - `-n N`, `--max=N`: Stop after N matches
 
 
+### Examples
+
 Here are some examples:
 
-- ```sh
+- Replace data in streams
+
+  ```sh
   $ echo Hello Wrold | sreplace -- Wrold World
   Hello World
   ```
 
-- ```sh
+- Inplace-modify files
+
+  ```sh
   $ echo foo bar foobar > file
   $ sreplace -b -- bar baz -- file
   $ cat file
   foo baz foobar
   ```
 
-- ```sh
+- Find occurances
+
+  ```sh
   $ echo foo bar foobar > file
   $ echo bar foo foobar >> file
   $ sreplace -fb -- foo bar -- file
@@ -60,4 +68,17 @@ Here are some examples:
   file:2:5:3:foo
   ```
 
+- Replace non-printable characters (including `\0` NUL)
+
+  ```sh
+  $ echo -e 'a\0b\0c\0d\0e' | sreplace -e -- '\0' '_'
+  a_b_c_d_e
+  ```
+
+- Count occurances
+
+  ```sh
+  $ sreplace -fb -- opt_progname -- main.c | wc -l
+  4
+  ```
 
