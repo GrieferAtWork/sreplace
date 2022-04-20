@@ -40,8 +40,9 @@
 
 
 #ifdef TARGET_NT
-#include <wchar.h>
 #include <Windows.h>
+#include <locale.h>
+#include <wchar.h>
 #define BADFD         INVALID_HANDLE_VALUE
 #define fd_t          HANDLE
 #define errno_t       DWORD
@@ -398,8 +399,6 @@ static size_t tunescape(tchar *str) {
 				}
 				break;
 			}
-			*dst++ = ch;
-			continue;
 		}
 		*dst++ = ch;
 	}
@@ -1261,6 +1260,14 @@ int tmain(int argc, tchar *argv[]) {
 		opt_progname = *argv++;
 		--argc;
 	}
+
+#ifdef TARGET_NT
+	/* Needed so `wcrtomb()' converts to utf-8
+	 * NOTE: Because  this specifies how  find/replace patterns are encoded,
+	 *       and thus specifies the byte-sequences we search for and  insert
+	 *       into files, this also sets the encoding we expect files to use. */
+	setlocale(LC_ALL, ".UTF8");
+#endif /* TARGET_NT */
 
 	/* Parse options. */
 	for (; argc; --argc, ++argv) {
