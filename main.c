@@ -681,8 +681,15 @@ static bool inbuf_readfd(struct inbuf *self, fd_t fd, size_t maxread) {
 		}
 		assert(reqsize <= self->ib_avl);
 		if (!fd_read(fd, self->ib_buf + self->ib_len, reqsize, &readsize)) {
-			warn("failed to read data: %" PRIsT "\n", tstrerror(get_errno()));
-			exit(1);
+#ifdef TARGET_NT
+			if (get_errno() == ERROR_BROKEN_PIPE) {
+				readsize = 0;
+			} else
+#endif /* TARGET_NT */
+			{
+				warn("failed to read data: %" PRIsT "\n", tstrerror(get_errno()));
+				exit(1);
+			}
 		}
 		if (readsize == 0) {
 			if (reqsize)
