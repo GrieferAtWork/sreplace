@@ -1,0 +1,153 @@
+
+# Find stuff that this format defines incorrectly:
+#  REPLACE:  "(?<=(|un)likely) \(", "("
+#             - Spaces after [un]likely (caused by 'SpaceBeforeParens: ControlStatements'),
+#               though with LLVM9, the produced formatting was waaay worse than this :)
+#  REPLACE:  "}[ \t]*\n[ \t]+(?=\bEXCEPT\b)" --> "} "
+#             - EXCEPT on a new line
+#  FIND:     "\t/\*[^\n]*\n [ ]+\*"
+#             - Block-comments that need to be re-aligned
+#
+# Really though: there needs to be a simple directive to perform
+# finalizing regex-based text replacement on otherwise already
+# formatted source code:
+# >> RegexReplacements:
+# >>   - Regex:       '(?<=(|un)likely) \('
+# >>     Replacement: '('
+# >>   - Regex:       '}[ \t]*\n[ \t]+(?=\bEXCEPT\b)'
+# >>     Replacement: '} '
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: true
+# AlignConsecutiveBitFields: true
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+# AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: No
+BinPackArguments: true
+BinPackParameters: true
+ExperimentalAutoDetectBinPacking: true
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  # BeforeLambdaBody: false
+  # BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+BreakAfterJavaFieldAnnotations: true
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+BreakStringLiterals: false
+ColumnLimit: 0
+CommentPragmas: '^\[\[\['
+CompactNamespaces: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 0
+Cpp11BracedListStyle: false
+DeriveLineEnding: true
+DerivePointerAlignment: false
+DisableFormat: false
+ExperimentalAutoDetectBinPacking: false
+FixNamespaceComments: false
+ForEachMacros: ['LIST_FOREACH', 'LIST_FOREACH_SAFE', 'LIST_P_FOREACH', 'LIST_P_FOREACH_SAFE', 'SLIST_FOREACH', 'SLIST_FOREACH_SAFE', 'SLIST_P_FOREACH', 'SLIST_P_FOREACH_SAFE', 'STAILQ_FOREACH', 'STAILQ_FOREACH_SAFE', 'STAILQ_P_FOREACH', 'STAILQ_P_FOREACH_SAFE', 'SIMPLEQ_FOREACH', 'SIMPLEQ_FOREACH_SAFE', 'SIMPLEQ_P_FOREACH', 'SIMPLEQ_P_FOREACH_SAFE', 'TAILQ_FOREACH', 'TAILQ_FOREACH_SAFE', 'TAILQ_FOREACH_REVERSE', 'TAILQ_FOREACH_REVERSE_SAFE', 'CIRCLEQ_FOREACH', 'CIRCLEQ_FOREACH_SAFE', 'CIRCLEQ_FOREACH_REVERSE', 'CIRCLEQ_FOREACH_REVERSE_SAFE', 'DLIST_FOREACH', 'DLIST_FOREACH_SAFE', 'BSEARCH', 'BSEARCHR', 'BSEARCHR_EX', 'BSEARCH_EX', 'PCI_FOREACH_DEVICE', 'PCI_FOREACH_DEVICE_CLASS']
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '\"api.h\"'
+    Priority:        1
+  - Regex:           '<(.*/compiler|__stdinc|__stdcxx|__crt|features)[.]h>'
+    Priority:        2
+  - Regex:           '<(kernel|debugger|dev|drivers|fs|misc|sched)/.*>'
+    Priority:        3
+  - Regex:           '<hybrid/.*[.]h>'
+    Priority:        4
+  - Regex:           '<lib.*>'
+    Priority:        7
+  - Regex:           '<.*/.*>'
+    Priority:        5
+  - Regex:           '<.*>'
+    Priority:        6
+  - Regex:           '\".*\"'
+    Priority:        9
+  - Regex:           '.*'
+    Priority:        8
+IncludeIsMainRegex: '$'
+IndentCaseLabels: false
+IndentGotoLabels: false
+IndentPPDirectives: None
+IndentWidth: 4
+IndentWrappedFunctionNames: false
+JavaScriptQuotes: Leave
+JavaScriptWrapImports: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 8
+NamespaceIndentation: None
+ObjCBinPackProtocolList: Auto
+ObjCBlockIndentWidth: 1
+ObjCSpaceAfterProperty: false
+ObjCSpaceBeforeProtocolList: false
+PenaltyBreakAssignment: 1
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyBreakComment: 1
+PenaltyBreakFirstLessLess: 1
+PenaltyBreakString: 0
+PenaltyBreakTemplateDeclaration: 1
+PenaltyExcessCharacter: 1
+PenaltyReturnTypeOnItsOwnLine: 1
+PointerAlignment: Right
+ReflowComments: true
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeCtorInitializerColon: false
+SpaceBeforeInheritanceColon: false
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceInEmptyBlock: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Standard: Cpp03
+TabWidth: 4
+TypenameMacros: ['ATREE_HEAD', 'ATREE_NODE', 'ATREE_NODE_SINGLE', 'ATREE_XNODE', 'ATREE_SEMI_T']
+UseCRLF: false
+UseTab: ForIndentation

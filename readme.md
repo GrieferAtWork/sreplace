@@ -6,14 +6,17 @@ StringREPLACE: a simple commandline utility for mass finding+replacing strings/w
 
 ### Building
 
-sreplace can currently only be built for unix system (and even then: only systems that support some currently unconditionally used extension; this will probably change in the future).
+sreplace can be built for both windows and unix system.
 
-```sh
-gcc -o sreplace main.c
-```
+- Windows: Open `sreplace.sln` with Visual Studio and press `CTRL+SHIFT+B`
 
-Known working target systems: `cygwin`, `linux`, `KOS`
+- Unix/GCC:
 
+  ```sh
+  gcc -o sreplace main.c
+  ```
+
+Known working target systems: `windows`, `cygwin`, `linux`, `KOS`
 
 ### Usage
 
@@ -22,13 +25,16 @@ The general idea behind `sreplace` is to specify FIND+REPLACE pairs, as well as 
 Flags:
 
 - `-f`, `--find`: Instead of FIND+REPLACE pairs, all commandline strings are FIND, and rather than replace anything, print all matching locations as `file:line:col:nchars:pattern\n`
+	- NOTE: On windows, use `;` as separator instead of `:`!
 - `-i`, `--icase`: Ignore casing
 - `-b`, `--bound`: Only match whole word (independently of`--regex`)
 - `-r`, `--regex`: `FIND` patterns are regular expressions
+	- NOTE: Currently only available on UNIX.
 - `-e`, `--escape`: `FIND` and `REPLACE` undergo C-style control character expansion before being used
 - `-t`, `--keep-mtime`: Preserve last-modified timestamps of modified files
 - `-R`, `--recursive`: Accept directories in the list of files. Directories will be enumerated recursively, and all contained files are treated as if they were listed explicitly (but see `--ext=LIST`).
 - `--ext=LIST`: Only scan files with extensions apart of `LIST` when they are encountered as the result of scanning a directory due to `-R` (example: `--ext=.txt:.c:.h` -- only find+replace `.txt`, `.c` and `.h` files)
+	- NOTE: On windows, use `;` as separator instead of `:`!
 - `-n N`, `--max=N`: Stop after N matches
 
 
