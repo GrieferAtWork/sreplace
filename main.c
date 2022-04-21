@@ -717,6 +717,9 @@ static void dofd(fd_t infd) {
 	ib.ib_ref = REG_NOTEOL;
 #endif /* !HAVE_REGEX_H */
 
+	if (!opt_max)
+		goto match_no_more;
+
 #ifdef HAVE_REGEX_H
 	if (opt_regex) {
 		/* Read as much input data as we can. */
@@ -736,13 +739,17 @@ again_re_find:
 					out_changed = true;
 					(*out)(f->f_repl, f->f_repllen);
 				}
-				/* TODO: Handle `opt_max' */
 
 				/* Consume text until end of match. */
 				ib.ib_ref |= REG_NOTBOL; /* No longer at start of file */
 				ib.ib_len -= match.rm_eo;
 				memmovedown(ib.ib_buf, ib.ib_buf + match.rm_eo, ib.ib_len);
 				ib.ib_avl += match.rm_eo;
+
+				/* Handle `opt_max' */
+				--opt_max;
+				if (!opt_max)
+					goto match_no_more;
 				goto again_re_find;
 			}
 		}
@@ -773,13 +780,17 @@ again_normal_find:
 					out_changed = true;
 					(*out)(f->f_repl, f->f_repllen);
 				}
-				/* TODO: Handle `opt_max' */
 
 				/* Consume text until end of match. */
 				ib.ib_ref |= REG_NOTBOL; /* No longer at start of file */
 				ib.ib_len -= match[1];
 				memmovedown(ib.ib_buf, ib.ib_buf + match[1], ib.ib_len);
 				ib.ib_avl += match[1];
+
+				/* Handle `opt_max' */
+				--opt_max;
+				if (!opt_max)
+					goto match_no_more;
 				goto again_normal_find;
 			}
 
@@ -800,6 +811,18 @@ again_normal_find:
 	(*out)(ib.ib_buf, ib.ib_len);
 /*done:*/
 	free(ib.ib_buf);
+	return;
+match_no_more:
+	if (out == &out2lc_fun)
+		return; /* Nothing left to do here! */
+	/* Forward all remaining data unchanged. */
+	do {
+		if (ib.ib_len) {
+			(*out)(ib.ib_buf, ib.ib_len);
+			ib.ib_avl += ib.ib_len;
+			ib.ib_len = 0;
+		}
+	} while (inbuf_readfd(&ib, infd, 64 * 1024));
 }
 
 
@@ -1121,6 +1144,8 @@ static void dodir_withdir(tchar const *dirpath, DIR *dir) {
 		if (tstrcmp(ent->d_name, T("..")) == 0)
 			continue;
 		dodirent(dirpath, ent);
+		if (!opt_max)
+			return;
 	}
 	if (get_errno() != 0) {
 		warn("failed to read directory '%" PRIsT "': %" PRIsT "\n",
@@ -1170,6 +1195,8 @@ static void dodir(tchar const *dirpath) {
 		if (tstrcmp(ent.d_name, T("..")) == 0)
 			goto nextent;
 		dodirent(dirpath, &ent);
+		if (!opt_max)
+			break;
 nextent:
 		if (!FindNextFileW(dir, &ent)) {
 			errno_t error = get_errno();
@@ -1182,7 +1209,6 @@ nextent:
 		}
 	}
 	(void)closedir(dir);
-	return;
 #else /* TARGET_NT */
 	DIR *dir = opendir(dirpath);
 	if (!dir) {
@@ -1192,7 +1218,6 @@ nextent:
 	}
 	dodir_withdir(dirpath, dir);
 	(void)closedir(dir);
-	return;
 #endif /* !TARGET_NT */
 }
 
@@ -1475,12 +1500,18 @@ warn_unknown_flag:
 		/* Without recursion, simply treat all given files as regular files.
 		 * If one of them  ends up being a  directory, us trying to  read(2)
 		 * from it will simply fail with an error! */
-		for (; argc; --argc, ++argv)
+		for (; argc; --argc, ++argv) {
+			if (!opt_max)
+				break;
 			dofilename(*argv);
+		}
 	} else {
 		/* Because of recursion we have to do special treatment of directories. */
-		for (; argc; --argc, ++argv)
+		for (; argc; --argc, ++argv) {
+			if (!opt_max)
+				break;
 			dorecursive(*argv);
+		}
 	}
 
 	return 0;
