@@ -650,56 +650,58 @@ nomatch:
  * @return: true:  Data was read
  * @return: false: Nothing could be read (`maxread == 0', or `fd' is EOF) */
 static bool inbuf_readfd(struct inbuf *self, fd_t fd, size_t maxread) {
-	bool read_something = false;
-	while (maxread && (self->ib_ref & REG_NOTEOL)) {
-		iosize_t readsize;
-		size_t reqsize = 64 * 1024;
-		if (reqsize > maxread)
-			reqsize = maxread;
-		if (reqsize > self->ib_avl) {
-			if (self->ib_avl < 512) {
-				byte_t *buf;
-				size_t newsize = ((self->ib_len + self->ib_avl) << 1) | 1;
-				size_t new_avl = 0;
-				if (newsize > self->ib_len)
-					new_avl = newsize - self->ib_len;
-				if (new_avl < reqsize) {
-					newsize = self->ib_len + reqsize;
-					if (newsize < self->ib_len)
-						newsize = (size_t)-1;
-				}
-				buf = (byte_t *)realloc(self->ib_buf, newsize);
-				if (!buf) {
-					newsize = self->ib_len + 1;
-					buf = (byte_t *)xrealloc(self->ib_buf, newsize);
-				}
-				self->ib_buf = buf;
-				self->ib_avl = newsize - self->ib_len;
+	iosize_t readsize;
+	size_t reqsize = 64 * 1024;
+	if (!maxread || !(self->ib_ref & REG_NOTEOL))
+		return false;
+	if (reqsize > maxread)
+		reqsize = maxread;
+	if (reqsize > self->ib_avl) {
+		if (self->ib_avl < 512) {
+			byte_t *buf;
+			size_t newsize = ((self->ib_len + self->ib_avl) << 1) | 1;
+			size_t new_avl = 0;
+			if (newsize > self->ib_len)
+				new_avl = newsize - self->ib_len;
+			if (new_avl < reqsize) {
+				newsize = self->ib_len + reqsize;
+				if (newsize < self->ib_len)
+					newsize = (size_t)-1;
 			}
-			reqsize = self->ib_avl;
-		}
-		assert(reqsize <= self->ib_avl);
-		if (!fd_read(fd, self->ib_buf + self->ib_len, reqsize, &readsize)) {
-#ifdef TARGET_NT
-			if (get_errno() == ERROR_BROKEN_PIPE) {
-				readsize = 0;
-			} else
-#endif /* TARGET_NT */
-			{
-				warn("failed to read data: %" PRIsT "\n", tstrerror(get_errno()));
-				exit(1);
+			buf = (byte_t *)realloc(self->ib_buf, newsize);
+			if (!buf) {
+				newsize = self->ib_len + 1;
+				buf = (byte_t *)xrealloc(self->ib_buf, newsize);
 			}
+			self->ib_buf = buf;
+			self->ib_avl = newsize - self->ib_len;
 		}
-		if (readsize == 0) {
-			if (reqsize)
-				self->ib_ref &= ~REG_NOTEOL;
-			break;
-		}
-		self->ib_len += (size_t)readsize;
-		self->ib_avl -= (size_t)readsize;
-		read_something = true;
+		reqsize = self->ib_avl;
 	}
-	return read_something;
+	assert(reqsize <= self->ib_avl);
+	if (!fd_read(fd, self->ib_buf + self->ib_len, reqsize, &readsize)) {
+#ifdef TARGET_NT
+		if (get_errno() == ERROR_BROKEN_PIPE) {
+			readsize = 0;
+		} else
+#endif /* TARGET_NT */
+		{
+			warn("failed to read data: %" PRIsT "\n", tstrerror(get_errno()));
+			exit(1);
+		}
+	}
+	if (readsize == 0) {
+		if (reqsize)
+			self->ib_ref &= ~REG_NOTEOL;
+		return false;
+	}
+	assert((size_t)readsize <= reqsize);
+	if ((size_t)readsize >= reqsize) {
+		/* TODO: Check if more data can be read without blocking */
+	}
+	self->ib_len += (size_t)readsize;
+	self->ib_avl -= (size_t)readsize;
+	return true;
 }
 
 
